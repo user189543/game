@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Color Burst：Pixel Pop</title>
+    <style>
+        body {
+            font-family: "Arial", sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+        h1 {
+            color: #333;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 10px;
+        }
+        .score-panel {
+            background-color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+            display: none; /* Initially hidden */
+        }
+        .score-panel.red {
+            color: red;
+            animation: blink 1s infinite alternate;
+        }
+        @keyframes blink {
+            from { opacity: 1; }
+            to { opacity: 0.7; }
+        }
+        canvas {
+            border-radius: 10px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+            background-color: #f8f9fa;
+            display: none; /* Initially hidden */
+        }
+        /* Control buttons */
+        .control-buttons {
+            margin: 10px 0;
+            display: none; /* Initially hidden */
+        }
+        .control-btn {
+            padding: 8px 20px;
+            margin: 0 10px;
+            font-size: 14px;
+            font-weight: bold;
+            color: white;
+            background-color: #45b7d1;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(69,183,209,0.3);
+            transition: all 0.2s ease;
+        }
+        .control-btn:hover {
+            background-color: #3498db;
+            transform: translateY(-2px);
+        }
+        .pause-btn {
+            background-color: #f39c12;
+        }
+        .pause-btn:hover {
+            background-color: #e67e22;
+        }
+        .restart-btn {
+            background-color: #ff6b6b;
+        }
+        .restart-btn:hover {
+            background-color: #e74c3c;
+        }
+        /* Start screen style */
+        .start-screen {
+            text-align: center;
+            background-color: white;
+            padding: 50px 80px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        .game-title {
+            font-size: 36px;
+            color: #ff6b6b;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0,0,0,0.1);
+        }
+        .game-rule {
+            font-size: 16px;
+            color: #666;
+            line-height: 1.8;
+            margin-bottom: 30px;
+            text-align: left;
+            max-width: 400px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .username-input {
+            padding: 12px 20px;
+            font-size: 16px;
+            border: 2px solid #ddd;
+            border-radius: 30px;
+            width: 250px;
+            margin-bottom: 30px;
+            outline: none;
+            transition: border 0.3s ease;
+        }
+        .username-input:focus {
+            border-color: #ff6b6b;
+        }
+        .start-btn {
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            color: white;
+            background-color: #ff6b6b;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255,107,107,0.3);
+            transition: all 0.3s ease;
+        }
+        .start-btn:hover {
+            background-color: #ff4949;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255,107,107,0.4);
+        }
+        /* Leaderboard style */
+        .leaderboard-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            display: none;
+        }
+        .leaderboard-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .leaderboard-title {
+            font-size: 24px;
+            color: #ff6b6b;
+            text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+        .leaderboard-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .leaderboard-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+        }
+        .leaderboard-item:nth-child(1) {
+            background-color: #fff9e6;
+            font-weight: bold;
+            color: #e67e22;
+        }
+        .leaderboard-item:nth-child(2) {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #95a5a6;
+        }
+        .leaderboard-item:nth-child(3) {
+            background-color: #faf6ed;
+            font-weight: bold;
+            color: #d35400;
+        }
+        .close-btn {
+            padding: 10px 25px;
+            font-size: 16px;
+            background-color: #45b7d1;
+            color: white;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            margin-top: 20px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .view-leaderboard-btn {
+            background-color: #9b59b6;
+        }
+        .view-leaderboard-btn:hover {
+            background-color: #8e44ad;
+        }
+    </style>
+</head>
+<body>
+    <!-- Start Screen (Initially shown) -->
+    <div class="start-screen" id="start-screen">
+        <div class="game-title">Color Burst：Pixel Pop</div>
+        <div class="game-rule">
+            🎮 Game Rules:<br>
+            1. Click adjacent blocks of the same color to eliminate them<br>
+            2. Eliminate more blocks to get higher scores<br>
+            3. Click blocks with no adjacent same color to lose 2 seconds<br>
+            4. Reach the target score before time runs out to level up<br>
+            5. Unlock larger grids every 10 levels - challenge upgraded!
+        </div>
+        <input type="text" class="username-input" id="username-input" placeholder="Enter your username" maxlength="10">
+        <button class="start-btn" id="start-btn">Click to Start Game</button>
+    </div>
+
+    <!-- Game Screen (Initially hidden) -->
+    <h1 style="display: none;" id="game-h1">Color Burst：Pixel Pop</h1>
+    <div class="score-panel" id="score-panel">
+        Score: 0 | Level: 1 | Grid: 4x4 | Target: 600 | Time: 45s | Penalty: -2s/Invalid Click
+    </div>
+    <!-- Control Buttons -->
+    <div class="control-buttons" id="control-buttons">
+        <button class="control-btn pause-btn" id="pause-btn">Pause</button>
+        <button class="control-btn restart-btn" id="restart-btn">Restart Game</button>
+        <button class="control-btn view-leaderboard-btn" id="view-leaderboard-btn">Leaderboard</button>
+    </div>
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Leaderboard Modal -->
+    <div class="leaderboard-modal" id="leaderboard-modal">
+        <div class="leaderboard-content">
+            <h2 class="leaderboard-title">🏆 Top Players (Highest Score)</h2>
+            <ul class="leaderboard-list" id="leaderboard-list">
+                <!-- Leaderboard data will be loaded here -->
+            </ul>
+            <button class="close-btn" id="close-leaderboard">Close</button>
+        </div>
+    </div>
+
+    <script>
+        // Game Configuration Constants
+        const BASIC_BLOCK_SIZE = 120;
+        const COLORS = ["#ff6b6b", "#4ecdc4", "#45b7d1", "#96ceb4", "#ffeaa7", "#dda0dd", "#ffb6c1", "#98fb98"];
+        const INITIAL_TIME = 45;
+        const MIN_TIME = 5;
+        const INITIAL_TARGET = 600;
+        const BASIC_TARGET_INCREMENT = 250;
+        const GRID_TARGET_INCREMENT = 250;
+        const LEVEL_STEP_INCREMENT = 50;
+        const TIME_DECREMENT = 3;
+        const TIME_PENALTY = 2;
+        const BASIC_BLOCK_SCORE = 10;
+        const BONUS_PER_BLOCK = 4;
+        const MAX_GRID_SIZE = 7;
+        // LeanCloud Configuration (Domestic Free Cloud Database) - 已替换为你的配置
+        const LEANCLOUD_CONFIG = {
+            appId: "a5GLLybQNv9yTLRN1fwt2EM1-gzGzoHsz",
+            appKey: "MGAzWxsDeZ8obVuOmgnBK749",
+            serverURL: "https://a5gllybq.lc-cn-n1-shared.com"
+        };
+
+        // Initialize LeanCloud (Domestic CDN)
+        if (!window.AV) {
+            // Load LeanCloud SDK (Domestic Access)
+            const script = document.createElement('script');
+            script.src = 'https://cdn.jsdelivr.net/npm/leancloud-storage@4.17.0/dist/av-min.js';
+            script.onload = () => {
+                AV.init(LEANCLOUD_CONFIG);
+                window.Score = AV.Object.extend('Score'); // Create Score class
+            };
+            document.body.appendChild(script);
+        } else {
+            AV.init(LEANCLOUD_CONFIG);
+            window.Score = AV.Object.extend('Score');
+        }
+
+        // Sound Effects (Web Audio API, offline available)
+        class SoundEffect {
+            constructor(type) {
+                this.audioContext = null; // Lazy initialization to avoid browser auto-block
+                this.type = type;
+            }
+
+            initAudio() {
+                if (!this.audioContext) {
+                    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                }
+            }
+
+            play() {
+                this.initAudio(); // Initialize audio after user interaction to avoid browser block
+                const oscillator = this.audioContext.createOscillator();
+                const gainNode = this.audioContext.createGain();
+
+                oscillator.connect(gainNode);
+                gainNode.connect(this.audioContext.destination);
+
+                // Different sound parameters
+                switch(this.type) {
+                    case "valid": // Valid click
+                        oscillator.type = "sine";
+                        oscillator.frequency.setValueAtTime(523, this.audioContext.currentTime); // C5
+                        oscillator.frequency.exponentialRampToValueAtTime(1047, this.audioContext.currentTime + 0.1); // C6
+                        gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.3);
+                        oscillator.start();
+                        oscillator.stop(this.audioContext.currentTime + 0.3);
+                        break;
+                    case "invalid": // Invalid click
+                        oscillator.type = "sawtooth";
+                        oscillator.frequency.setValueAtTime(220, this.audioContext.currentTime); // A3
+                        oscillator.frequency.exponentialRampToValueAtTime(110, this.audioContext.currentTime + 0.2); // A2
+                        gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+                        oscillator.start();
+                        oscillator.stop(this.audioContext.currentTime + 0.2);
+                        break;
+                    case "levelup": // Level up
+                        oscillator.type = "triangle";
+                        oscillator.frequency.setValueAtTime(330, this.audioContext.currentTime); // E4
+                        oscillator.frequency.exponentialRampToValueAtTime(660, this.audioContext.currentTime + 0.2); // E5
+                        oscillator.frequency.exponentialRampToValueAtTime(1320, this.audioContext.currentTime + 0.4); // E6
+                        gainNode.gain.setValueAtTime(0.6, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.6);
+                        oscillator.start();
+                        oscillator.stop(this.audioContext.currentTime + 0.6);
+                        break;
+                    case "start": // Game start
+                        oscillator.type = "sine";
+                        oscillator.frequency.setValueAtTime(392, this.audioContext.currentTime); // G4
+                        oscillator.frequency.exponentialRampToValueAtTime(784, this.audioContext.currentTime + 0.2); // G5
+                        gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.4);
+                        oscillator.start();
+                        oscillator.stop(this.audioContext.currentTime + 0.4);
+                        break;
+                    case "pause": // Pause
+                        oscillator.type = "square";
+                        oscillator.frequency.setValueAtTime(196, this.audioContext.currentTime); // G3
+                        gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+                        oscillator.start();
+                        oscillator.stop(this.audioContext.currentTime + 0.2);
+                        break;
+                    case "resume": // Resume
+                        oscillator.type = "square";
+                        oscillator.frequency.setValueAtTime(262, this.audioContext.currentTime); // C4
+                        gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.2);
+                        oscillator.start();
+                        oscillator.stop(this.audioContext.currentTime + 0.2);
+                        break;
+                }
+            }
+        }
+
+        // Create sound instances
+        const validSound = new SoundEffect("valid");
+        const invalidSound = new SoundEffect("invalid");
+        const levelUpSound = new SoundEffect("levelup");
+        const startSound = new SoundEffect("start");
+        const pauseSound = new SoundEffect("pause");
+        const resumeSound = new SoundEffect("resume");
+
+        class PixelBlitzGame {
+            constructor() {
+                this.score = 0;
+                this.level = 1;
+                this.time_left = INITIAL_TIME;
+                this.grid_size = 4;
+                this.current_target = this.calc_target_score();
+                this.game_running = false; // Not running initially
+                this.game_paused = false; // Not paused initially
+                this.timerInterval = null;
+                this.username = "";
+
+                // Get DOM elements
+                this.startScreen = document.getElementById("start-screen");
+                this.startBtn = document.getElementById("start-btn");
+                this.usernameInput = document.getElementById("username-input");
+                this.gameH1 = document.getElementById("game-h1");
+                this.scorePanel = document.getElementById("score-panel");
+                this.controlButtons = document.getElementById("control-buttons");
+                this.pauseBtn = document.getElementById("pause-btn");
+                this.restartBtn = document.getElementById("restart-btn");
+                this.viewLeaderboardBtn = document.getElementById("view-leaderboard-btn");
+                this.canvas = document.getElementById("game-canvas");
+                this.leaderboardModal = document.getElementById("leaderboard-modal");
+                this.leaderboardList = document.getElementById("leaderboard-list");
+                this.closeLeaderboardBtn = document.getElementById("close-leaderboard");
+
+                // Bind events
+                this.startBtn.addEventListener("click", () => this.handleStart());
+                this.pauseBtn.addEventListener("click", () => this.togglePause());
+                this.restartBtn.addEventListener("click", () => this.restartGame());
+                this.viewLeaderboardBtn.addEventListener("click", () => this.showLeaderboard());
+                this.closeLeaderboardBtn.addEventListener("click", () => this.hideLeaderboard());
+
+                // Initialize canvas (but not display)
+                this.ctx = this.canvas.getContext("2d");
+                this.block_size = Math.max(60, BASIC_BLOCK_SIZE - (this.grid_size - 4) * 15);
+                this.canvas.width = this.grid_size * this.block_size;
+                this.canvas.height = this.grid_size * this.block_size;
+
+                // Bind game click events
+                this.canvas.addEventListener("mousedown", (e) => this.on_click(e));
+                this.canvas.addEventListener("mouseup", (e) => this.on_click_feedback(e));
+            }
+
+            // Handle start (check username first)
+            handleStart() {
+                const username = this.usernameInput.value.trim() || "Player" + Math.floor(Math.random() * 1000);
+                this.username = username;
+                this.startGame();
+            }
+
+            // Start game (switch interface + initialize)
+            startGame() {
+                startSound.play(); // Play start sound
+                this.game_running = true;
+                this.game_paused = false;
+
+                // Switch interface: hide start screen, show game screen
+                this.startScreen.style.display = "none";
+                this.gameH1.style.display = "block";
+                this.scorePanel.style.display = "block";
+                this.controlButtons.style.display = "block";
+                this.canvas.style.display = "block";
+                this.pauseBtn.textContent = "Pause";
+
+                // Initialize game grid
+                this.grid = this.create_high_density_grid();
+                this.update_display();
+                this.start_timer(); // Start timer
+                this.loadLeaderboard(); // Load leaderboard data
+            }
+
+            // Toggle pause/resume
+            togglePause() {
+                if (!this.game_running) return;
+
+                if (this.game_paused) {
+                    // Resume game
+                    this.game_paused = false;
+                    this.pauseBtn.textContent = "Pause";
+                    resumeSound.play();
+                    this.canvas.style.filter = "none";
+                    this.start_timer(); // Restart timer
+                } else {
+                    // Pause game
+                    this.game_paused = true;
+                    this.pauseBtn.textContent = "Resume";
+                    pauseSound.play();
+                    this.canvas.style.filter = "blur(2px)";
+                    clearInterval(this.timerInterval); // Stop timer
+                }
+            }
+
+            // Restart game (without reloading page)
+            restartGame() {
+                if (confirm("Are you sure you want to restart?")) {
+                    // Reset game state
+                    clearInterval(this.timerInterval);
+                    this.score = 0;
+                    this.level = 1;
+                    this.time_left = INITIAL_TIME;
+                    this.grid_size = 4;
+                    this.current_target = this.calc_target_score();
+                    this.game_paused = false;
+                    this.pauseBtn.textContent = "Pause";
+                    this.canvas.style.filter = "none";
+
+                    // Re-initialize grid and display
+                    this.block_size = Math.max(60, BASIC_BLOCK_SIZE - (this.grid_size - 4) * 15);
+                    this.canvas.width = this.grid_size * this.block_size;
+                    this.canvas.height = this.grid_size * this.block_size;
+                    this.grid = this.create_high_density_grid();
+                    this.update_display();
+                    this.update_score_label();
+                    this.start_timer(); // Restart timer
+                }
+            }
+
+            // 核心修改1：加载排行榜时，按用户名去重，仅保留最高分
+            loadLeaderboard() {
+                if (!window.AV || !window.Score) return;
+
+                // 1. 查询所有成绩
+                const query = new AV.Query(Score);
+                query.descending("score"); // 先按得分降序（方便后续筛选最高分）
+                query.find().then((results) => {
+                    // 2. 按用户名分组，保留每个用户的最高分记录
+                    const userTopScores = {};
+                    results.forEach(item => {
+                        const username = item.get("username");
+                        const score = item.get("score");
+                        const level = item.get("level");
+                        const gridSize = item.get("gridSize");
+                        
+                        // 若该用户暂无记录，或当前成绩高于已有记录，则更新
+                        if (!userTopScores[username] || score > userTopScores[username].score) {
+                            userTopScores[username] = {
+                                username,
+                                score,
+                                level,
+                                gridSize
+                            };
+                        }
+                    });
+
+                    // 3. 转换为数组，按得分降序排序，取前10
+                    const leaderboard = Object.values(userTopScores)
+                        .sort((a, b) => b.score - a.score)
+                        .slice(0, 10);
+
+                    // 4. 渲染排行榜
+                    this.leaderboardList.innerHTML = "";
+                    if (leaderboard.length === 0) {
+                        const emptyItem = document.createElement("li");
+                        emptyItem.className = "leaderboard-item";
+                        emptyItem.textContent = "No scores yet - be the first!";
+                        this.leaderboardList.appendChild(emptyItem);
+                    } else {
+                        leaderboard.forEach((item, index) => {
+                            const listItem = document.createElement("li");
+                            listItem.className = "leaderboard-item";
+                            listItem.innerHTML = `
+                                <span>${index + 1}. ${item.username}</span>
+                                <span>Score: ${item.score} | Level: ${item.level}</span>
+                            `;
+                            this.leaderboardList.appendChild(listItem);
+                        });
+                    }
+                }).catch((error) => {
+                    console.error("Failed to load leaderboard:", error);
+                    const errorItem = document.createElement("li");
+                    errorItem.className = "leaderboard-item";
+                    errorItem.textContent = "Failed to load leaderboard - try again later";
+                    this.leaderboardList.appendChild(errorItem);
+                });
+            }
+
+            // Show leaderboard modal
+            showLeaderboard() {
+                this.loadLeaderboard();
+                this.leaderboardModal.style.display = "flex";
+                // Pause game if running
+                if (this.game_running && !this.game_paused) {
+                    this.togglePause();
+                }
+            }
+
+            // Hide leaderboard modal
+            hideLeaderboard() {
+                this.leaderboardModal.style.display = "none";
+            }
+
+            // 核心修改2：保存成绩时，先检查该用户是否已有更低分记录，有则替换
+            saveScore() {
+                if (!window.AV || !window.Score || !this.username) return;
+
+                // 1. 先查询该用户的所有记录
+                const query = new AV.Query(Score);
+                query.equalTo("username", this.username);
+                query.find().then((existingScores) => {
+                    if (existingScores.length === 0) {
+                        // 2. 无历史记录，直接新增
+                        const newScore = new Score();
+                        newScore.set("username", this.username);
+                        newScore.set("score", this.score);
+                        newScore.set("level", this.level);
+                        newScore.set("gridSize", this.grid_size);
+                        newScore.set("timestamp", new Date().toISOString());
+                        return newScore.save();
+                    } else {
+                        // 3. 有历史记录，找到最高分
+                        let highestScoreRecord = existingScores[0];
+                        existingScores.forEach(record => {
+                            if (record.get("score") > highestScoreRecord.get("score")) {
+                                highestScoreRecord = record;
+                            }
+                        });
+
+                        // 4. 若当前成绩高于历史最高分，则更新该记录；否则不保存
+                        if (this.score > highestScoreRecord.get("score")) {
+                            highestScoreRecord.set("score", this.score);
+                            highestScoreRecord.set("level", this.level);
+                            highestScoreRecord.set("gridSize", this.grid_size);
+                            highestScoreRecord.set("timestamp", new Date().toISOString());
+                            return highestScoreRecord.save();
+                        } else {
+                            console.log("Current score is not higher than user's highest score - no save");
+                            return Promise.resolve(); // 不保存，返回成功Promise
+                        }
+                    }
+                }).then(() => {
+                    console.log("Score saved/updated successfully!");
+                    this.loadLeaderboard(); // 刷新排行榜
+                }).catch((error) => {
+                    console.error("Failed to save score:", error);
+                    alert("Failed to save score to leaderboard - try again later!");
+                });
+            }
+
+            calc_target_score() {
+                const basic = INITIAL_TARGET + (this.level - 1) * BASIC_TARGET_INCREMENT;
+                const grid_bonus = (this.grid_size - 4) * GRID_TARGET_INCREMENT;
+                const step_bonus = Math.floor(this.level / 10) * LEVEL_STEP_INCREMENT;
+                return basic + grid_bonus + step_bonus;
+            }
+
+            create_high_density_grid() {
+                let grid;
+                const required_matches = 5 + (this.grid_size - 4) * 3;
+                while (true) {
+                    grid = Array.from({length: this.grid_size}, () => 
+                        Array.from({length: this.grid_size}, () => randomChoice(COLORS))
+                    );
+                    if (this.count_independent_matches(grid) >= required_matches) break;
+                }
+                return grid;
+            }
+
+            count_independent_matches(grid) {
+                const visited = new Set();
+                let match_count = 0;
+                for (let i = 0; i < this.grid_size; i++) {
+                    for (let j = 0; j < this.grid_size; j++) {
+                        if (!visited.has(`${i},${j}`) && this.has_adjacent_match(grid, i, j)) {
+                            const stack = [[i, j]];
+                            visited.add(`${i},${j}`);
+                            while (stack.length > 0) {
+                                const [r, c] = stack.pop();
+                                const directions = [[-1,0], [1,0], [0,-1], [0,1]];
+                                for (const [dr, dc] of directions) {
+                                    const nr = r + dr, nc = c + dc;
+                                    if (nr >=0 && nr < this.grid_size && nc >=0 && nc < this.grid_size && 
+                                        !visited.has(`${nr},${nc}`) && grid[nr][nc] === grid[r][c]) {
+                                        visited.add(`${nr},${nc}`);
+                                        stack.push([nr, nc]);
+                                    }
+                                }
+                            }
+                            match_count++;
+                        }
+                    }
+                }
+                return match_count;
+            }
+
+            has_adjacent_match(grid, row, col) {
+                const color = grid[row][col];
+                const directions = [[-1,0], [1,0], [0,-1], [0,1]];
+                for (const [dr, dc] of directions) {
+                    const nr = row + dr, nc = col + dc;
+                    if (nr >=0 && nr < this.grid_size && nc >=0 && nc < this.grid_size && grid[nr][nc] === color) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            has_valid_matches(grid) {
+                for (let i = 0; i < this.grid_size; i++) {
+                    for (let j = 0; j < this.grid_size; j++) {
+                        if (j < this.grid_size - 1 && grid[i][j] === grid[i][j+1]) return true;
+                        if (i < this.grid_size - 1 && grid[i][j] === grid[i+1][j]) return true;
+                    }
+                }
+                return false;
+            }
+
+            fix_no_matches() {
+                while (!this.has_valid_matches(this.grid)) {
+                    const empty_positions = [];
+                    for (let i = 0; i < this.grid_size; i++) {
+                        for (let j = 0; j < this.grid_size; j++) {
+                            if (this.grid[i][j] === null) empty_positions.push([i, j]);
+                        }
+                    }
+                    if (empty_positions.length > 0) {
+                        for (const [i, j] of empty_positions) {
+                            this.grid[i][j] = randomChoice(COLORS);
+                        }
+                    } else {
+                        const lonely_blocks = [];
+                        for (let i = 0; i < this.grid_size; i++) {
+                            for (let j = 0; j < this.grid_size; j++) {
+                                if (!this.has_adjacent_match(this.grid, i, j)) lonely_blocks.push([i, j]);
+                            }
+                        }
+                        const [i, j] = lonely_blocks.length > 0 ? randomChoice(lonely_blocks) : 
+                            [Math.floor(Math.random() * this.grid_size), Math.floor(Math.random() * this.grid_size)];
+                        this.grid[i][j] = randomChoice(COLORS);
+                    }
+                }
+            }
+
+            update_display() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+                for (let i = 0; i < this.grid_size; i++) {
+                    for (let j = 0; j < this.grid_size; j++) {
+                        // Draw shadow
+                        this.ctx.fillStyle = "#ccc";
+                        this.ctx.fillRect(j*this.block_size + 5, i*this.block_size + 5, this.block_size - 6, this.block_size - 6);
+                        // Draw block
+                        this.ctx.fillStyle = this.grid[i][j];
+                        this.ctx.fillRect(j*this.block_size + 3, i*this.block_size + 3, this.block_size - 6, this.block_size - 6);
+                        // Draw border
+                        this.ctx.strokeStyle = "#fff";
+                        this.ctx.lineWidth = 2;
+                        this.ctx.strokeRect(j*this.block_size + 3, i*this.block_size + 3, this.block_size - 6, this.block_size - 6);
+                    }
+                }
+            }
+
+            on_click(event) {
+                if (!this.game_running || this.game_paused) return;
+
+                const rect = this.canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                const col = Math.min(Math.floor(x / this.block_size), this.grid_size - 1);
+                const row = Math.min(Math.floor(y / this.block_size), this.grid_size - 1);
+                const safeCol = Math.max(0, col);
+                const safeRow = Math.max(0, row);
+
+                const target_color = this.grid[safeRow][safeCol];
+                const matched = this.find_matched_non_recursive(safeRow, safeCol, target_color);
+
+                if (matched.length >= 2) {
+                    // Valid click
+                    validSound.play();
+                    const grid_score_bonus = (this.grid_size - 4) * 2;
+                    const block_score = BASIC_BLOCK_SCORE + grid_score_bonus + (matched.length - 2) * BONUS_PER_BLOCK;
+                    this.score += matched.length * block_score;
+
+                    // Eliminate blocks
+                    for (const [r, c] of matched) this.grid[r][c] = null;
+                    this.fall_blocks();
+                    this.fill_empty();
+                    this.fix_no_matches();
+                    this.update_display();
+                } else {
+                    // Invalid click
+                    invalidSound.play();
+                    this.time_left = Math.max(0, this.time_left - TIME_PENALTY);
+                    this.canvas.style.backgroundColor = "red";
+                    setTimeout(() => this.canvas.style.backgroundColor = "#f8f9fa", 200);
+                }
+
+                this.update_score_label();
+
+                // Level up
+                if (this.score >= this.current_target) {
+                    this.level_up();
+                }
+            }
+
+            on_click_feedback(event) {
+                if (!this.game_running || this.game_paused) return;
+
+                const rect = this.canvas.getBoundingClientRect();
+                const x = event.clientX - rect.left;
+                const y = event.clientY - rect.top;
+                const col = Math.min(Math.floor(x / this.block_size), this.grid_size - 1);
+                const row = Math.min(Math.floor(y / this.block_size), this.grid_size - 1);
+                const safeCol = Math.max(0, col);
+                const safeRow = Math.max(0, row);
+
+                const target_color = this.grid[safeRow][safeCol];
+                const matched = this.find_matched_non_recursive(safeRow, safeCol, target_color);
+                const border_color = matched.length >= 2 ? "#ff0000" : "#ffff00";
+
+                this.ctx.strokeStyle = border_color;
+                this.ctx.lineWidth = 4;
+                this.ctx.strokeRect(
+                    safeCol*this.block_size + 3,
+                    safeRow*this.block_size + 3,
+                    this.block_size - 6,
+                    this.block_size - 6
+                );
+
+                setTimeout(() => this.update_display(), 100);
+            }
+
+            update_score_label() {
+                const text = `Score: ${this.score} | Level: ${this.level} | Grid: ${this.grid_size}x${this.grid_size} | Target: ${this.current_target} | Time: ${this.time_left}s | Penalty: -2s/Invalid Click`;
+                this.scorePanel.textContent = text;
+                if (this.time_left <= 10) {
+                    this.scorePanel.classList.add("red");
+                } else {
+                    this.scorePanel.classList.remove("red");
+                }
+            }
+
+            level_up() {
+                levelUpSound.play();
+                this.level++;
+                let new_grid_size = this.grid_size;
+
+                // Expand grid every 10 levels
+                if (this.level % 10 === 0 && this.grid_size < MAX_GRID_SIZE) {
+                    new_grid_size = this.grid_size + 1;
+                    this.block_size = Math.max(60, BASIC_BLOCK_SIZE - (new_grid_size - 4) * 15);
+                    this.canvas.width = new_grid_size * this.block_size;
+                    this.canvas.height = new_grid_size * this.block_size;
+                }
+
+                // Calculate remaining time
+                const grid_time_bonus = new_grid_size > this.grid_size ? 10 : 0;
+                this.time_left = Math.max(MIN_TIME, INITIAL_TIME - (this.level - 1) * TIME_DECREMENT + grid_time_bonus);
+
+                // Update status
+                this.grid_size = new_grid_size;
+                this.current_target = this.calc_target_score();
+                this.grid = this.create_high_density_grid();
+                this.update_display();
+                this.update_score_label();
+
+                // Popup
+                if (this.level % 10 === 0) {
+                    alert(`🚀 Grid Expanded! Penalty Challenge!\nUnlocked Level ${this.level}!\n• New Grid: ${this.grid_size}x${this.grid_size}\n• Time Left: ${this.time_left}s\n• Next Target: ${this.current_target}\n⚠️  Invalid Click = -2s! Choose wisely!`);
+                } else {
+                    alert(`🔥 Level Up! Penalty Active!\nUnlocked Level ${this.level}!\n• Grid: ${this.grid_size}x${this.grid_size}\n• Time Left: ${this.time_left}s\n• Next Target: ${this.current_target}\n⚠️  Don't click wrong - 2s penalty!`);
+                }
+            }
+
+            find_matched_non_recursive(row, col, color) {
+                const matched = [];
+                const stack = [[row, col]];
+                const visited = new Set();
+
+                while (stack.length > 0) {
+                    const [r, c] = stack.pop();
+                    const key = `${r},${c}`;
+                    if (visited.has(key)) continue;
+                    visited.add(key);
+                    if (this.grid[r][c] === color) {
+                        matched.push([r, c]);
+                        const directions = [[-1,0], [1,0], [0,-1], [0,1]];
+                        for (const [dr, dc] of directions) {
+                            const nr = r + dr, nc = c + dc;
+                            if (nr >=0 && nr < this.grid_size && nc >=0 && nc < this.grid_size) {
+                                stack.push([nr, nc]);
+                            }
+                        }
+                    }
+                }
+                return matched;
+            }
+
+            fall_blocks() {
+                for (let col = 0; col < this.grid_size; col++) {
+                    const new_col = [];
+                    for (let row = 0; row < this.grid_size; row++) {
+                        if (this.grid[row][col] !== null) new_col.push(this.grid[row][col]);
+                    }
+                    while (new_col.length < this.grid_size) new_col.unshift(null);
+                    for (let row = 0; row < this.grid_size; row++) {
+                        this.grid[row][col] = new_col[row];
+                    }
+                }
+            }
+
+            fill_empty() {
+                for (let i = 0; i < this.grid_size; i++) {
+                    for (let j = 0; j < this.grid_size; j++) {
+                        if (this.grid[i][j] === null) {
+                            this.grid[i][j] = randomChoice(COLORS);
+                        }
+                    }
+                }
+            }
+
+            start_timer() {
+                this.timerInterval = setInterval(() => {
+                    if (this.game_running && !this.game_paused) {
+                        if (this.time_left > 0) {
+                            this.time_left--;
+                            this.update_score_label();
+                        } else {
+                            this.game_running = false;
+                            clearInterval(this.timerInterval);
+                            this.saveScore(); // Save score to leaderboard
+                            const msg = this.score >= this.current_target 
+                                ? `🎉 Ultimate Victory!\nFinal Score: ${this.score}\nLevel: ${this.level}\nGrid: ${this.grid_size}x${this.grid_size}\nYour score is on the leaderboard!`
+                                : `⏰ Time's Up! Challenge Failed!\nFinal Score: ${this.score} (Target: ${this.current_target})\nLevel: ${this.level}\nGrid: ${this.grid_size}x${this.grid_size}\nYour score is on the leaderboard!`;
+                            alert(msg);
+                            // Option to restart after game over
+                            if (confirm("Would you like to restart the game?")) {
+                                this.restartGame();
+                            } else {
+                                this.showLeaderboard();
+                            }
+                        }
+                    }
+                }, 1000);
+            }
+        }
+
+        // Utility function
+        function randomChoice(arr) {
+            return arr[Math.floor(Math.random() * arr.length)];
+        }
+
+        // Initialize game after page loads
+        window.onload = () => {
+            new PixelBlitzGame();
+        };
+    </script>
+</body>
+</html>
